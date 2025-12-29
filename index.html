@@ -1,1 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker OS Authentication</title>
+    <style>
+        body {
+            background-color: black;
+            color: #00ff00; /* Green glow */
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        #terminal {
+            width: 80%;
+            max-width: 800px;
+            height: 60%;
+            padding: 20px;
+            border: 2px solid #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        #password-input {
+            background: black;
+            color: #00ff00;
+            border: none;
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+            width: auto;
+        }
+        #password-input::placeholder {
+            color: #00ff00;
+        }
+        .blink {
+            animation: blink 1s step-start infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal"></div>
+    <script>
+        // Web Audio API for typing sound effect (simple click noise)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
+        function playClick() {
+            const oscillator = audioCtx.createOscillator();
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // Retro click pitch
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime); // Quiet volume
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            setTimeout(() => oscillator.stop(), 30); // Short duration
+        }
+
+        // Typing animation text (customize as needed)
+        const bootText = [
+            "INITIALIZING HACKER OS v1.0...",
+            "LOADING NEURAL NETWORK INTERFACE...",
+            "SECURITY PROTOCOL ACTIVATED.",
+            " ",
+            "AUTHENTICATION REQUIRED.",
+            "ENTER ACCESS CODE: "
+        ];
+
+        const terminal = document.getElementById('terminal');
+        let lineIndex = 0;
+        let charIndex = 0;
+        let typingSpeed = 50; // ms per character
+
+        function typeLine() {
+            if (lineIndex < bootText.length) {
+                if (charIndex < bootText[lineIndex].length) {
+                    terminal.innerHTML += bootText[lineIndex][charIndex];
+                    if (bootText[lineIndex][charIndex] !== ' ') {
+                        playClick();
+                    }
+                    charIndex++;
+                    setTimeout(typeLine, typingSpeed);
+                } else {
+                    terminal.innerHTML += '<br>';
+                    lineIndex++;
+                    charIndex = 0;
+                    setTimeout(typeLine, 300); // Pause between lines
+                }
+            } else {
+                // Show password input with blinking cursor
+                terminal.innerHTML += '<input type="password" id="password-input" autofocus>';
+                const cursor = document.createElement('span');
+                cursor.className = 'blink';
+                cursor.innerHTML = '_';
+                terminal.appendChild(cursor);
+
+                const input = document.getElementById('password-input');
+                input.addEventListener('keydown', handleEnter);
+            }
+        }
+
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                const password = document.getElementById('password-input').value;
+                const correctPassword = 'neuralnet'; // Change this to your secret password
+
+                if (password === correctPassword) {
+                    terminal.innerHTML += '<br>ACCESS GRANTED.<br>REDIRECTING TO CORE SYSTEM...';
+                    setTimeout(() => {
+                        window.location.href = 'blog.html'; // Redirect to main blog page
+                    }, 1500);
+                } else {
+                    terminal.innerHTML += '<br>ACCESS DENIED. TRY AGAIN.<br>ENTER ACCESS CODE: ';
+                    const newInput = document.createElement('input');
+                    newInput.type = 'password';
+                    newInput.id = 'password-input';
+                    newInput.autofocus = true;
+                    terminal.appendChild(newInput);
+                    const cursor = document.createElement('span');
+                    cursor.className = 'blink';
+                    cursor.innerHTML = '_';
+                    terminal.appendChild(cursor);
+                    newInput.addEventListener('keydown', handleEnter);
+                }
+            }
+        }
+
+        // Start the animation
+        typeLine();
+    </script>
+</body>
+</html>
