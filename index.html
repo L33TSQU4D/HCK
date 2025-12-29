@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>SYSTEM BOOT - AUTH REQUIRED</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1rem;
+            overflow: hidden;
+        }
+        #screen {
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            height: 100%;
+            box-sizing: border-box;
+            border: 1px solid #0f0;
+            box-shadow: 0 0 15px #0f0 inset;
+        }
+        #output {
+            height: 70%;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+        input {
+            background: black;
+            color: #0f0;
+            border: none;
+            font: inherit;
+            outline: none;
+            caret-color: #0f0;
+        }
+        .cursor { animation: blink 1s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+<div id="screen">
+    <div id="output"></div>
+</div>
+
+<script>
+const output = document.getElementById('output');
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+function clickSound() {
+    const osc = ctx.createOscillator();
+    osc.type = 'square';
+    osc.frequency.value = 880;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.04);
+}
+
+const lines = [
+    "CYBERDYNE SYSTEMS KERNEL v4.2 - BOOT SEQUENCE",
+    ".............................................",
+    "MEMORY CHECK: 640K OK",
+    "NEURAL NET ONLINE",
+    "SECURITY LAYER ACTIVE",
+    "",
+    "USER AUTHENTICATION REQUIRED",
+    "ENTER ACCESS CODE: "
+];
+
+let lineIdx = 0;
+let charIdx = 0;
+
+function type() {
+    if (lineIdx >= lines.length) {
+        showPasswordField();
+        return;
+    }
+
+    if (charIdx < lines[lineIdx].length) {
+        output.textContent += lines[lineIdx][charIdx];
+        if (lines[lineIdx][charIdx] !== ' ') clickSound();
+        charIdx++;
+        setTimeout(type, 40 + Math.random() * 40);
+    } else {
+        output.textContent += '\n';
+        lineIdx++;
+        charIdx = 0;
+        setTimeout(type, 600);
+    }
+}
+
+function showPasswordField() {
+    const input = document.createElement('input');
+    input.type = 'password';
+    input.autofocus = true;
+    input.style.width = '20ch';
+    input.style.fontSize = '1.1rem';
+
+    const line = document.createElement('div');
+    line.textContent = '> ';
+    line.appendChild(input);
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    cursor.textContent = '_';
+    line.appendChild(cursor);
+
+    output.appendChild(line);
+
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const pass = input.value.trim();
+            if (pass === 'skynet1984') {           // ← CHANGE THIS PASSWORD!
+                output.innerHTML += '\nACCESS GRANTED. DECRYPTING CORE...\n';
+                setTimeout(() => {
+                    window.location.href = 'blog.html';
+                }, 1800);
+            } else {
+                output.innerHTML += '\nACCESS DENIED.\n';
+                showPasswordField();
+            }
+        }
+    });
+}
+
+type();
+</script>
+</body>
+</html>
